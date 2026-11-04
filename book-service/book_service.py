@@ -1,3 +1,21 @@
+"""In-memory book management with create, retrieve, list, and delete operations.
+
+``create_book`` validates and stores a book with a unique ID; ``get_book``
+retrieves one by ID; ``list_books`` optionally filters and sorts the collection;
+and ``delete_book`` removes a book by ID. Lookup and deletion raise ``KeyError``
+when the ID is unknown.
+
+Example:
+    >>> service = BookService()
+    >>> book = service.create_book("Dune", "Frank Herbert")
+    >>> service.get_book(book["id"])["title"]
+    'Dune'
+    >>> service.list_books(search="dune")
+    [{'id': 1, 'title': 'Dune', 'author': 'Frank Herbert'}]
+    >>> service.delete_book(book["id"])
+"""
+
+
 class BookService:
     """Manage books in memory."""
 
