@@ -1,6 +1,10 @@
 class BookService:
     """Manage books in memory."""
 
+    def __init__(self) -> None:
+        self.books: list[dict[str, str | int]] = []
+        self._next_id = 1
+
     def create_book(self, title: str, author: str) -> dict[str, str | int]:
         """Create and return a book with a unique ID."""
         ...
