@@ -19,6 +19,12 @@ Example:
 class BookService:
     """Create, retrieve, list, and delete books stored in memory."""
 
+    @staticmethod
+    def _validate_non_empty_string(value: str, field_name: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field_name} must be a non-empty string")
+        return value.strip()
+
     def __init__(self) -> None:
         """Initialize an empty collection and start book IDs at one."""
         self._books: list[dict[str, str | int]] = []
@@ -37,15 +43,10 @@ class BookService:
         Raises:
             ValueError: If either value is not a non-empty string.
         """
-        if not isinstance(title, str) or not title.strip():
-            raise ValueError("title must be a non-empty string")
-        if not isinstance(author, str) or not author.strip():
-            raise ValueError("author must be a non-empty string")
-
         book: dict[str, str | int] = {
             "id": self._next_id,
-            "title": title.strip(),
-            "author": author.strip(),
+            "title": self._validate_non_empty_string(title, "title"),
+            "author": self._validate_non_empty_string(author, "author"),
         }
         self._books.append(book)
         self._next_id += 1
