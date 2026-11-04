@@ -7,7 +7,19 @@ class BookService:
 
     def create_book(self, title: str, author: str) -> dict[str, str | int]:
         """Create and return a book with a unique ID."""
-        ...
+        if not isinstance(title, str) or not title.strip():
+            raise ValueError("title must be a non-empty string")
+        if not isinstance(author, str) or not author.strip():
+            raise ValueError("author must be a non-empty string")
+
+        book: dict[str, str | int] = {
+            "id": self._next_id,
+            "title": title.strip(),
+            "author": author.strip(),
+        }
+        self.books.append(book)
+        self._next_id += 1
+        return book
 
     def get_book(self, book_id: int) -> dict[str, str | int]:
         """Return the book matching the ID, or raise an error if not found."""
