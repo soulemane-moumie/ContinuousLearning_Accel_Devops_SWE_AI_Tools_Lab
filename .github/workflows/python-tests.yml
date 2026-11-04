@@ -17,4 +17,4 @@ jobs:
       - name: Install pytest
         run: python -m pip install pytest
       - name: Run tests
-        run: python -m pytest test.py
+        run: python -m pytest test.py book-service/test_book_service.py
