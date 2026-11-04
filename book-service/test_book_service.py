@@ -34,12 +34,35 @@ def test_create_book_trims_fields_and_assigns_unique_ids():
     assert service.list_books() == [first, second]
 
 
+def test_returned_books_cannot_mutate_stored_records():
+    service = BookService()
+    created = service.create_book("Dune", "Frank Herbert")
+    created["title"] = "Changed"
+
+    retrieved = service.get_book(1)
+    retrieved["author"] = "Changed"
+    listed = service.list_books()
+    listed[0]["title"] = "Changed again"
+
+    assert service.get_book(1) == {
+        "id": 1,
+        "title": "Dune",
+        "author": "Frank Herbert",
+    }
+
+
 def test_get_book_raises_for_missing_ids():
     service = BookService()
 
     for book_id in (0, -1, 1):
         with pytest.raises(KeyError):
             service.get_book(book_id)
+
+
+@pytest.mark.parametrize("book_id", [True, False, "1", 1.0, None])
+def test_get_book_rejects_non_integer_ids(book_id):
+    with pytest.raises(ValueError, match="book_id must be an integer"):
+        BookService().get_book(book_id)
 
 
 def test_search_matches_title_or_author_without_case_sensitivity():
@@ -50,6 +73,12 @@ def test_search_matches_title_or_author_without_case_sensitivity():
     assert service.list_books(search="DUNE") == [dune]
     assert service.list_books(search="tolkien") == [hobbit]
     assert service.list_books(search="missing") == []
+
+
+@pytest.mark.parametrize("search", [1, [], True])
+def test_search_rejects_non_string_values(search):
+    with pytest.raises(ValueError, match="search must be a string"):
+        BookService().list_books(search=search)
 
 
 @pytest.mark.parametrize(
@@ -83,8 +112,9 @@ def test_sorting_is_stable_for_equal_values():
 
 
 def test_list_books_rejects_invalid_sort_field():
-    with pytest.raises(ValueError):
-        BookService().list_books(sort_by="publisher")
+    for sort_by in ("publisher", []):
+        with pytest.raises(ValueError):
+            BookService().list_books(sort_by=sort_by)
 
 
 def test_delete_book_removes_only_matching_book_and_raises_if_missing():
