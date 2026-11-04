@@ -17,14 +17,26 @@ Example:
 
 
 class BookService:
-    """Manage books in memory."""
+    """Create, retrieve, list, and delete books stored in memory."""
 
     def __init__(self) -> None:
+        """Initialize an empty collection and start book IDs at one."""
         self.books: list[dict[str, str | int]] = []
-        self._next_id = 1
+        self._next_id: int = 1
 
     def create_book(self, title: str, author: str) -> dict[str, str | int]:
-        """Create and return a book with a unique ID."""
+        """Validate, store, and return a book with a unique ID.
+
+        Args:
+            title: The book's non-empty title.
+            author: The book's non-empty author.
+
+        Returns:
+            The created book, containing its ID, title, and author.
+
+        Raises:
+            ValueError: If either value is not a non-empty string.
+        """
         if not isinstance(title, str) or not title.strip():
             raise ValueError("title must be a non-empty string")
         if not isinstance(author, str) or not author.strip():
@@ -40,7 +52,17 @@ class BookService:
         return book
 
     def get_book(self, book_id: int) -> dict[str, str | int]:
-        """Return the book matching the ID, or raise an error if not found."""
+        """Return the book with the requested ID.
+
+        Args:
+            book_id: The ID of the book to retrieve.
+
+        Returns:
+            The matching book.
+
+        Raises:
+            KeyError: If no book has the requested ID.
+        """
         for book in self.books:
             if book["id"] == book_id:
                 return book
@@ -52,7 +74,21 @@ class BookService:
         sort_by: str | None = None,
         ascending: bool = True,
     ) -> list[dict[str, str | int]]:
-        """Return books, optionally filtered by search and sorted."""
+        """Return books, optionally filtering by text and sorting by a field.
+
+        Args:
+            search: Optional case-insensitive text to match in titles or authors.
+            sort_by: Optional field to sort by: ``"id"``, ``"title"``, or
+                ``"author"``.
+            ascending: Whether to sort in ascending order when ``sort_by`` is
+                provided.
+
+        Returns:
+            The matching books in insertion order or the requested sort order.
+
+        Raises:
+            ValueError: If ``sort_by`` is not a supported field.
+        """
         books = self.books
         if search is not None:
             query = search.casefold()
@@ -71,7 +107,14 @@ class BookService:
         return list(books)
 
     def delete_book(self, book_id: int) -> None:
-        """Delete the book matching the ID, or raise an error if not found."""
+        """Delete the book with the requested ID.
+
+        Args:
+            book_id: The ID of the book to delete.
+
+        Raises:
+            KeyError: If no book has the requested ID.
+        """
         book = self.get_book(book_id)
         self.books.remove(book)
 
