@@ -23,7 +23,10 @@ class BookService:
 
     def get_book(self, book_id: int) -> dict[str, str | int]:
         """Return the book matching the ID, or raise an error if not found."""
-        ...
+        for book in self.books:
+            if book["id"] == book_id:
+                return book
+        raise KeyError(f"Book with id {book_id} was not found")
 
     def list_books(
         self,
@@ -32,8 +35,37 @@ class BookService:
         ascending: bool = True,
     ) -> list[dict[str, str | int]]:
         """Return books, optionally filtered by search and sorted."""
-        ...
+        books = self.books
+        if search is not None:
+            query = search.casefold()
+            books = [
+                book
+                for book in books
+                if query in str(book["title"]).casefold()
+                or query in str(book["author"]).casefold()
+            ]
+
+        if sort_by is not None:
+            if sort_by not in {"id", "title", "author"}:
+                raise ValueError("sort_by must be 'id', 'title', or 'author'")
+            books = sorted(books, key=lambda book: book[sort_by], reverse=not ascending)
+
+        return list(books)
 
     def delete_book(self, book_id: int) -> None:
         """Delete the book matching the ID, or raise an error if not found."""
-        ...
+        book = self.get_book(book_id)
+        self.books.remove(book)
+
+
+def demo() -> None:
+    """Demonstrate creating, retrieving, listing, and deleting books."""
+    service = BookService()
+    first_book = service.create_book("The Hobbit", "J. R. R. Tolkien")
+    second_book = service.create_book("Dune", "Frank Herbert")
+
+    assert service.get_book(first_book["id"]) == first_book
+    assert service.list_books() == [first_book, second_book]
+
+    service.delete_book(second_book["id"])
+    assert second_book["id"] not in [book["id"] for book in service.list_books()]
