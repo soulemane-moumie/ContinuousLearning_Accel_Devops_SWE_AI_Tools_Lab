@@ -21,7 +21,7 @@ class BookService:
 
     def __init__(self) -> None:
         """Initialize an empty collection and start book IDs at one."""
-        self.books: list[dict[str, str | int]] = []
+        self._books: list[dict[str, str | int]] = []
         self._next_id: int = 1
 
     def create_book(self, title: str, author: str) -> dict[str, str | int]:
@@ -47,9 +47,9 @@ class BookService:
             "title": title.strip(),
             "author": author.strip(),
         }
-        self.books.append(book)
+        self._books.append(book)
         self._next_id += 1
-        return book
+        return book.copy()
 
     def get_book(self, book_id: int) -> dict[str, str | int]:
         """Return the book with the requested ID.
@@ -58,14 +58,18 @@ class BookService:
             book_id: The ID of the book to retrieve.
 
         Returns:
-            The matching book.
+            A copy of the matching book.
 
         Raises:
+            ValueError: If ``book_id`` is not an integer.
             KeyError: If no book has the requested ID.
         """
-        for book in self.books:
+        if type(book_id) is not int:
+            raise ValueError("book_id must be an integer")
+
+        for book in self._books:
             if book["id"] == book_id:
-                return book
+                return book.copy()
         raise KeyError(f"Book with id {book_id} was not found")
 
     def list_books(
@@ -87,10 +91,13 @@ class BookService:
             The matching books in insertion order or the requested sort order.
 
         Raises:
-            ValueError: If ``sort_by`` is not a supported field.
+            ValueError: If ``search`` is not a string or ``sort_by`` is not a
+                supported field.
         """
-        books = self.books
+        books = self._books
         if search is not None:
+            if not isinstance(search, str):
+                raise ValueError("search must be a string")
             query = search.casefold()
             books = [
                 book
@@ -100,11 +107,11 @@ class BookService:
             ]
 
         if sort_by is not None:
-            if sort_by not in {"id", "title", "author"}:
+            if not isinstance(sort_by, str) or sort_by not in {"id", "title", "author"}:
                 raise ValueError("sort_by must be 'id', 'title', or 'author'")
             books = sorted(books, key=lambda book: book[sort_by], reverse=not ascending)
 
-        return list(books)
+        return [book.copy() for book in books]
 
     def delete_book(self, book_id: int) -> None:
         """Delete the book with the requested ID.
@@ -116,7 +123,7 @@ class BookService:
             KeyError: If no book has the requested ID.
         """
         book = self.get_book(book_id)
-        self.books.remove(book)
+        self._books.remove(book)
 
 
 def demo() -> None:
